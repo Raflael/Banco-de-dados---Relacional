@@ -1,0 +1,39 @@
+-- Tabela de tipos de eventos
+CREATE TABLE tipos_eventos (
+    tipo_evento_id SERIAL PRIMARY KEY
+);
+
+-- Tabela de locais
+CREATE TABLE locais (
+    local_id SERIAL PRIMARY KEY
+);
+
+-- Tabela de eventos
+CREATE TABLE eventos (
+    evento_id SERIAL PRIMARY KEY,
+    tipo_evento_id INT NOT NULL,
+    local_id INT NOT NULL,
+    CONSTRAINT fk_tipo_evento FOREIGN KEY (tipo_evento_id) REFERENCES tipos_eventos(tipo_evento_id) ON DELETE CASCADE,
+    CONSTRAINT fk_local FOREIGN KEY (local_id) REFERENCES locais(local_id) ON DELETE CASCADE
+);
+
+-- Tabela de usuários
+CREATE TABLE usuarios (
+    usuario_id SERIAL PRIMARY KEY
+);
+
+-- Relatos (associação N:N entre eventos e usuários)
+CREATE TABLE relatos (
+    relato_id SERIAL PRIMARY KEY,
+    evento_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    CONSTRAINT fk_evento_relato FOREIGN KEY (evento_id) REFERENCES eventos(evento_id) ON DELETE CASCADE,
+    CONSTRAINT fk_usuario_relato FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
+);
+
+-- Alertas associados a eventos
+CREATE TABLE alertas (
+    alerta_id SERIAL PRIMARY KEY,
+    evento_id INT NOT NULL,
+    CONSTRAINT fk_evento_alerta FOREIGN KEY (evento_id) REFERENCES eventos(evento_id) ON DELETE CASCADE
+);
