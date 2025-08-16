@@ -1,0 +1,49 @@
+-- Tabela de autores
+CREATE TABLE autores (
+    autor_id SERIAL PRIMARY KEY,
+    nome_autor VARCHAR(100) NOT NULL,
+    pais_origem VARCHAR(50)
+);
+
+-- Tabela de livros
+CREATE TABLE livros (
+    livro_id SERIAL PRIMARY KEY,
+    titulo_livro VARCHAR(150) NOT NULL,
+    ano_publicacao INT,
+    codigo_isbn VARCHAR(20) UNIQUE
+);
+
+-- Associação N:N entre livros e autores
+CREATE TABLE livros_autores (
+    livro_id INT NOT NULL,
+    autor_id INT NOT NULL,
+    PRIMARY KEY (livro_id, autor_id),
+    CONSTRAINT fk_livro FOREIGN KEY (livro_id) REFERENCES livros(livro_id) ON DELETE CASCADE,
+    CONSTRAINT fk_autor FOREIGN KEY (autor_id) REFERENCES autores(autor_id) ON DELETE CASCADE
+);
+
+-- Tabela de clientes
+CREATE TABLE clientes (
+    cliente_id SERIAL PRIMARY KEY,
+    nome_cliente VARCHAR(100) NOT NULL,
+    email_cliente VARCHAR(100) UNIQUE NOT NULL,
+    telefone_cliente VARCHAR(20)
+);
+
+-- Tabela de empréstimos
+CREATE TABLE emprestimos (
+    emprestimo_id SERIAL PRIMARY KEY,
+    data_emprestimo DATE NOT NULL,
+    data_devolucao DATE,
+    cliente_id INT NOT NULL,
+    CONSTRAINT fk_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(cliente_id) ON DELETE CASCADE
+);
+
+-- Associação N:N entre empréstimos e livros
+CREATE TABLE emprestimos_livros (
+    emprestimo_id INT NOT NULL,
+    livro_id INT NOT NULL,
+    PRIMARY KEY (emprestimo_id, livro_id),
+    CONSTRAINT fk_emp FOREIGN KEY (emprestimo_id) REFERENCES emprestimos(emprestimo_id) ON DELETE CASCADE,
+    CONSTRAINT fk_livro_emp FOREIGN KEY (livro_id) REFERENCES livros(livro_id) ON DELETE CASCADE
+);
