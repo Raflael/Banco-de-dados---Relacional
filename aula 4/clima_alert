@@ -1,0 +1,166 @@
+------------------------------------------------------------
+-- Tabela de tipos de eventos
+------------------------------------------------------------
+CREATE TABLE tipos_eventos (
+    tipo_evento_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
+);
+
+------------------------------------------------------------
+-- Tabela de locais
+------------------------------------------------------------
+CREATE TABLE locais (
+    local_id SERIAL PRIMARY KEY,
+    descricao VARCHAR(150) NOT NULL
+);
+
+------------------------------------------------------------
+-- Tabela de eventos
+------------------------------------------------------------
+CREATE TABLE eventos (
+    evento_id SERIAL PRIMARY KEY,
+    tipo_evento_id INT NOT NULL,
+    local_id INT NOT NULL,
+    data_evento DATE NOT NULL,
+    CONSTRAINT fk_tipo_evento FOREIGN KEY (tipo_evento_id) REFERENCES tipos_eventos(tipo_evento_id) ON DELETE CASCADE,
+    CONSTRAINT fk_local FOREIGN KEY (local_id) REFERENCES locais(local_id) ON DELETE CASCADE
+);
+
+------------------------------------------------------------
+-- Tabela de usuários
+------------------------------------------------------------
+CREATE TABLE usuarios (
+    usuario_id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+------------------------------------------------------------
+-- Tabela auxiliar (categorias de usuários)
+------------------------------------------------------------
+CREATE TABLE categorias_usuarios (
+    categoria_id SERIAL PRIMARY KEY,
+    nome_categoria VARCHAR(50) NOT NULL
+);
+
+-- Relacionar usuários a categorias
+ALTER TABLE usuarios
+ADD COLUMN categoria_id INT,
+ADD CONSTRAINT fk_categoria_usuario FOREIGN KEY (categoria_id) REFERENCES categorias_usuarios(categoria_id) ON DELETE SET NULL;
+
+------------------------------------------------------------
+-- Relatos (associação N:N entre eventos e usuários)
+------------------------------------------------------------
+CREATE TABLE relatos (
+    relato_id SERIAL PRIMARY KEY,
+    evento_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    descricao TEXT,
+    CONSTRAINT fk_evento_relato FOREIGN KEY (evento_id) REFERENCES eventos(evento_id) ON DELETE CASCADE,
+    CONSTRAINT fk_usuario_relato FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
+);
+
+------------------------------------------------------------
+-- Alertas associados a eventos
+------------------------------------------------------------
+CREATE TABLE alertas (
+    alerta_id SERIAL PRIMARY KEY,
+    evento_id INT NOT NULL,
+    mensagem TEXT NOT NULL,
+    CONSTRAINT fk_evento_alerta FOREIGN KEY (evento_id) REFERENCES eventos(evento_id) ON DELETE CASCADE
+);
+
+------------------------------------------------------------
+-- INSERTS clima_alerta
+------------------------------------------------------------
+
+-- TIPOS DE EVENTOS
+INSERT INTO tipos_eventos (nome) VALUES
+('Enchente'),
+('Deslizamento'),
+('Tempestade'),
+('Seca'),
+('Incêndio Florestal'),
+('Granizo'),
+('Tsunami'),
+('Terremoto'),
+('Ondas de Calor'),
+('Frio Extremo');
+
+-- LOCAIS
+INSERT INTO locais (descricao) VALUES
+('Centro da cidade'),
+('Zona rural - Fazenda Boa Vista'),
+('Praia do Sol'),
+('Comunidade Morro Alto'),
+('Parque Nacional das Serras'),
+('Avenida Principal'),
+('Bairro Industrial'),
+('Lago Azul'),
+('Rodovia BR-101 km 200'),
+('Aeroporto Internacional');
+
+-- EVENTOS
+INSERT INTO eventos (tipo_evento_id, local_id, data_evento) VALUES
+(1, 1, '2025-01-15'),
+(2, 4, '2025-02-10'),
+(3, 6, '2025-03-22'),
+(4, 2, '2025-04-05'),
+(5, 5, '2025-05-30'),
+(6, 9, '2025-06-18'),
+(7, 3, '2025-07-01'),
+(8, 10, '2025-07-12'),
+(9, 7, '2025-08-03'),
+(10, 8, '2025-08-15');
+
+-- CATEGORIAS DE USUÁRIOS
+INSERT INTO categorias_usuarios (nome_categoria) VALUES
+('Administrador'),
+('Pesquisador'),
+('Agente de Defesa Civil'),
+('Cidadão'),
+('ONG Ambiental'),
+('Governo Estadual'),
+('Governo Federal'),
+('Voluntário'),
+('Jornalista'),
+('Estudante');
+
+-- USUÁRIOS
+INSERT INTO usuarios (nome, email, categoria_id) VALUES
+('Ana Souza', 'ana.souza@email.com', 4),
+('Bruno Lima', 'bruno.lima@email.com', 3),
+('Carlos Mendes', 'carlos.mendes@email.com', 2),
+('Daniela Rocha', 'daniela.rocha@email.com', 1),
+('Eduardo Silva', 'eduardo.silva@email.com', 5),
+('Fernanda Costa', 'fernanda.costa@email.com', 8),
+('Gabriel Santos', 'gabriel.santos@email.com', 6),
+('Helena Martins', 'helena.martins@email.com', 7),
+('Igor Almeida', 'igor.almeida@email.com', 9),
+('Juliana Oliveira', 'juliana.oliveira@email.com', 10);
+
+-- RELATOS
+INSERT INTO relatos (evento_id, usuario_id, descricao) VALUES
+(1, 1, 'As ruas do centro estão completamente alagadas.'),
+(2, 2, 'Moradores relatam deslizamento próximo às casas.'),
+(3, 3, 'Tempestade derrubou postes de energia.'),
+(4, 4, 'Plantação perdeu quase toda a produção por falta de chuva.'),
+(5, 5, 'Incêndio destruiu grande parte da vegetação.'),
+(6, 6, 'Granizo danificou veículos estacionados.'),
+(7, 7, 'Pequeno tsunami atingiu a faixa de areia.'),
+(8, 8, 'Tremores sentidos no aeroporto, voos cancelados.'),
+(9, 9, 'Ondas de calor afetam trabalhadores locais.'),
+(10, 10, 'Frio extremo prejudicou transporte e aulas.');
+
+-- ALERTAS
+INSERT INTO alertas (evento_id, mensagem) VALUES
+(1, 'Evite transitar no centro da cidade devido a enchente.'),
+(2, 'Atenção: risco de novos deslizamentos no Morro Alto.'),
+(3, 'Alerta de tempestade com ventos fortes.'),
+(4, 'Estado de emergência por seca na zona rural.'),
+(5, 'Evacuação do Parque Nacional das Serras por incêndio.'),
+(6, 'Atenção: risco de granizo na BR-101.'),
+(7, 'Possibilidade de novo tsunami na Praia do Sol.'),
+(8, 'Risco de tremores adicionais no aeroporto.'),
+(9, 'Atenção: temperaturas acima de 40°C na região industrial.'),
+(10, 'Alerta de frio extremo no Lago Azul.');
