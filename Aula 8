@@ -1,0 +1,73 @@
+-- 1) Conta quantos livros cada autor possui.
+-- Retorna: autor_id, nome_do_autor, total_livros (0 se não tiver livros)
+SELECT
+  a.autor_id,
+  a.nome AS nome_autor,
+  COUNT(la.livro_id) AS total_livros
+FROM autores a
+LEFT JOIN livros_autores la ON la.autor_id = a.autor_id
+GROUP BY a.autor_id, a.nome
+ORDER BY total_livros DESC, a.nome;
+
+
+-- 2) Média de páginas por editora.
+-- Retorna: editora_id, nome_editora, media_paginas e total_livros (opcional)
+SELECT
+  e.editora_id,
+  e.nome AS nome_editora,
+  AVG(l.paginas)::numeric(10,2) AS media_paginas,
+  COUNT(l.livro_id) AS total_livros
+FROM editoras e
+LEFT JOIN livros l ON l.editora_id = e.editora_id
+GROUP BY e.editora_id, e.nome
+ORDER BY media_paginas DESC NULLS LAST;
+
+
+-- 3) Total de campanhas por reservatório.
+-- Retorna: reservatorio_id, nome_reservatorio, total_campanhas
+SELECT
+  r.reservatorio_id,
+  r.nome AS nome_reservatorio,
+  COUNT(c.campanha_id) AS total_campanhas
+FROM reservatorios r
+LEFT JOIN campanhas c ON c.reservatorio_id = r.reservatorio_id
+GROUP BY r.reservatorio_id, r.nome
+ORDER BY total_campanhas DESC;
+
+
+-- 4) Média de valores de cada parâmetro em séries temporais.
+-- Se a tabela for 'series_temporais' com colunas: reservatorio_id, parametro, valor, data_hora
+-- Retorna: reservatorio_id (opcional), parametro, media_valor
+-- Versão por parâmetro (toda a base):
+SELECT
+  parametro,
+  AVG(valor)::numeric(12,3) AS media_valor
+FROM series_temporais
+GROUP BY parametro
+ORDER BY parametro;
+
+
+-- Versão separada por reservatório E parâmetro:
+SELECT
+  st.reservatorio_id,
+  r.nome AS reservatorio,
+  st.parametro,
+  AVG(st.valor)::numeric(12,3) AS media_valor
+FROM series_temporais st
+LEFT JOIN reservatorios r ON r.reservatorio_id = st.reservatorio_id
+GROUP BY st.reservatorio_id, r.nome, st.parametro
+ORDER BY st.reservatorio_id, st.parametro;
+
+
+-- 5) Instituições com mais de 3 campanhas.
+-- Supõe-se que tabela 'campanhas' tem coluna instituicao_id que referencia 'instituicoes'
+SELECT
+  i.instituicao_id,
+  i.nome AS instituicao,
+  COUNT(c.campanha_id) AS total_campanhas
+FROM instituicoes i
+JOIN campanhas c ON c.instituicao_id = i.instituicao_id
+GROUP BY i.instituicao_id, i.nome
+HAVING COUNT(c.campanha_id) > 3
+ORDER BY total_campanhas DESC;
+
