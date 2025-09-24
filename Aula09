@@ -1,0 +1,108 @@
+--------------------------------------------------------------------------------
+-- 1) Listar quantos livros cada autor publicou por editora (BD Biblioteca).
+--------------------------------------------------------------------------------
+/*
+  O que retorna:
+  - editora_id, nome_editora, autor_id, nome_autor, total_livros_por_editora_autor
+  Para cada combinação (editora, autor) conta quantos livros desse autor foram
+  publicados por essa editora.
+  Uso típico: saber quantos livros um autor publicou em cada editora.
+*/
+SELECT
+  ed.editora_id,
+  ed.nome AS nome_editora,
+  a.autor_id,
+  a.nome AS nome_autor,
+  COUNT(l.livro_id) AS total_livros_por_editora_autor
+FROM autores a
+JOIN livros_autores la ON la.autor_id = a.autor_id
+JOIN livros l ON l.livro_id = la.livro_id
+JOIN editoras ed ON ed.editora_id = l.editora_id
+GROUP BY ed.editora_id, ed.nome, a.autor_id, a.nome
+ORDER BY ed.nome, total_livros_por_editora_autor DESC, a.nome;
+
+--------------------------------------------------------------------------------
+-- 2) Listar a média de páginas dos livros por autor (BD Biblioteca).
+--------------------------------------------------------------------------------
+/*
+  O que retorna:
+  - autor_id, nome_autor, media_paginas, total_livros
+  Calcula a média de páginas dos livros atribuídos a cada autor.
+  Observação: se um livro tem múltiplos autores, ele será contado para cada autor
+  (comportamento típico quando se usa a tabela associativa livros_autores).
+*/
+SELECT
+  a.autor_id,
+  a.nome AS nome_autor,
+  AVG(l.paginas)::numeric(10,2) AS media_paginas,
+  COUNT(l.livro_id) AS total_livros
+FROM autores a
+JOIN livros_autores la ON la.autor_id = a.autor_id
+JOIN livros l ON l.livro_id = la.livro_id
+GROUP BY a.autor_id, a.nome
+ORDER BY media_paginas DESC NULLS LAST;
+
+--------------------------------------------------------------------------------
+-- 3) Mostrar o total de campanhas por reservatório e instituição (limnologia_db).
+--------------------------------------------------------------------------------
+/*
+  O que retorna:
+  - reservatorio_id, nome_reservatorio, instituicao_id, nome_instituicao, total_campanhas
+  Conta quantas campanhas cada instituição realizou em cada reservatório.
+  Útil para ver atividade por instituição em cada reservatório.
+*/
+SELECT
+  r.reservatorio_id,
+  r.nome AS nome_reservatorio,
+  i.instituicao_id,
+  i.nome AS nome_instituicao,
+  COUNT(c.campanha_id) AS total_campanhas
+FROM campanhas c
+JOIN reservatorios r ON r.reservatorio_id = c.reservatorio_id
+JOIN instituicoes i ON i.instituicao_id = c.instituicao_id
+GROUP BY r.reservatorio_id, r.nome, i.instituicao_id, i.nome
+ORDER BY r.nome, total_campanhas DESC;
+
+--------------------------------------------------------------------------------
+-- 4) Mostrar a média de valores de parâmetros por reservatório (limnologia_db).
+--------------------------------------------------------------------------------
+/*
+  O que retorna (versão por reservatório e parâmetro):
+  - reservatorio_id, nome_reservatorio, parametro, media_valor
+  Calcula a média (AVG) do campo 'valor' para cada parâmetro registrado nas
+  séries temporais de cada reservatório.
+*/
+SELECT
+  st.reservatorio_id,
+  r.nome AS nome_reservatorio,
+  st.parametro,
+  AVG(st.valor)::numeric(12,3) AS media_valor
+FROM series_temporais st
+JOIN reservatorios r ON r.reservatorio_id = st.reservatorio_id
+GROUP BY st.reservatorio_id, r.nome, st.parametro
+ORDER BY st.reservatorio_id, st.parametro;
+
+-- (Opcional) versão agregada somente por parâmetro (toda a base):
+-- SELECT parametro, AVG(valor)::numeric(12,3) AS media_valor
+-- FROM series_temporais
+-- GROUP BY parametro
+-- ORDER BY parametro;
+
+--------------------------------------------------------------------------------
+-- 5) Listar as instituições que coletaram em mais de um reservatório (limnologia_db).
+--------------------------------------------------------------------------------
+/*
+  O que retorna:
+  - instituicao_id, nome_instituicao, quantidade_reservatorios_distintos
+  Lista instituições que realizaram coletas/campanhas em mais de um reservatório.
+  Supõe-se que a tabela 'campanhas' (ou 'coletas') relaciona instituicao_id e reservatorio_id.
+*/
+SELECT
+  i.instituicao_id,
+  i.nome AS nome_instituicao,
+  COUNT(DISTINCT c.reservatorio_id) AS quantidade_reservatorios_distintos
+FROM instituicoes i
+JOIN campanhas c ON c.instituicao_id = i.instituicao_id
+GROUP BY i.instituicao_id, i.nome
+HAVING COUNT(DISTINCT c.reservatorio_id) > 1
+ORDER BY quantidade_reservatorios_distintos DESC, i.nome;
